@@ -1,0 +1,26 @@
+# download file if household_power_consumption.zip is not found in working dir
+# reads csv from zip
+library(lubridate)
+
+read_hpc <- function(){
+    if (!"hpc.zip" %in% dir(".")) {
+        download.file("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2Fhousehold_power_consumption.zip", "hpc.zip")
+    }
+    
+    # for sake of speed can first narrow the dataset using "skip" and "nrows" parameters of read.csv;
+    # setting nrows=400000 is enough
+    hpc<-read.csv(unz("hpc.zip", "household_power_consumption.txt"), sep=";", na.strings="?")
+    hpc<-filter(hpc, Date %in% c("1/2/2007","2/2/2007"))
+    hpc<-mutate(hpc, datetime=as.POSIXct(strptime(paste(hpc$Date, hpc$Time), "%d/%m/%Y %H:%M:%S")))
+    return(hpc)
+}
+
+ # rm(hpc); rm(cache)
+if (!exists("cache")) {
+    print("loading hpc")
+    cache<-read_hpc()
+    hpc<-cache
+} else {
+    print("use cached hpc")
+    hpc<-cache
+}
